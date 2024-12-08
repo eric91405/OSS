@@ -1,0 +1,34 @@
+name: Deploy Node.js to EC2
+
+on:
+  push:
+    branches:
+      - main  # main 브랜치에 푸시될 때마다 트리거
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Ubuntu 환경에서 실행
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2  # 리포지토리의 코드를 체크아웃
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2  # Node.js 환경 설정
+      with:
+        node-version: '16'  # 원하는 Node.js 버전 설정
+
+    - name: Install dependencies
+      run: npm install  # 프로젝트 의존성 설치
+
+    - name: Copy files to EC2
+      run: |
+        scp -i /path/to/your-key.pem -r ./ ec2-user@your-ec2-public-ip:/path/to/your-app  # EC2로 애플리케이션 파일 복사
+
+    - name: SSH into EC2 and deploy
+      run: |
+        ssh -i /path/to/your-key.pem ec2-user@your-ec2-public-ip << 'EOF'
+          cd /path/to/your-app
+          npm install  # 의존성 설치
+          pm2 restart app.js  # pm2로 애플리케이션 재시작
+        EOF
